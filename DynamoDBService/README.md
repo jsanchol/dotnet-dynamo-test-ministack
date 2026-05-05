@@ -14,6 +14,16 @@ Prompt:
    plan how to the performance test that service
    ```
 
+## Project Structure
+
+- DynamoDBService/: Main project directory
+-- DynamoDBService/: .NET console app
+--- Program.cs: Main code with DynamoDB operations
+--- DynamoDBService.csproj: Project file with AWS SDK dependencies
+--- Dockerfile: For containerizing the app
+-- docker-compose.yml: Runs both Ministack and the app
+-- README.md: Setup and usage instructions
+
 ## Prerequisites
 
 - Docker
