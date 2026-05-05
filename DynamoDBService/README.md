@@ -83,3 +83,28 @@ To thoroughly test performance:
    cd DynamoDBService
    dotnet run
    ```
+
+## Related documentation
+
+- Dotnet & Docker: <https://learn.microsoft.com/en-us/dotnet/core/docker/build-container?tabs=windows&pivots=dotnet-10-0>
+- Docker Compose:
+-- <https://docs.docker.com/compose/>
+-- <https://docs.docker.com/reference/compose-file/services/>
+-- <https://certidevs.com/tutorial-docker-compose-services>
+- Ministack <https://ministack.org/>
+- AWS SDK: <https://docs.aws.amazon.com/sdk-for-net/v4/developer-guide/creds-assign.html>
+-DynamoDB: <https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/CodeSamples.DotNet.html#CodeSamples.DotNet.Credentials>
+
+## Usefull commands
+
+   ```bash
+   dotnet --version
+   dotnet --list-sdks
+   docker init
+   dotnet new console --name DynamoDBService
+   dotnet add package AWSSDK.DynamoDBv2
+   dotnet add package AWSSDK.Extensions.NETCore.Setup
+   dotnet build
+   dotnet run
+   docker-compose up --build
+   ```
