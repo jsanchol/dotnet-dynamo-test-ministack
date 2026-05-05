@@ -55,6 +55,7 @@ Prompt:
 - **Query**: Efficient for retrieving items with a specific partition key. Uses the primary index, fast and cost-effective.
 - **Scan**: Scans the entire table, slow and expensive for large tables. Avoid in production.
 - **GSI Query**: Allows querying on non-primary keys. Slightly slower than primary query due to index maintenance overhead, but much faster than scan.
+- **Ministack**: Provides local emulation with realistic DynamoDB behavior
 
 ## Performance Testing Plan
 
