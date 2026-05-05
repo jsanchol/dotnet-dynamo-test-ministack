@@ -17,7 +17,7 @@ Prompt:
 ## Prerequisites
 
 - Docker
-- ~ .NET 8 SDK
+- ~ .NET 10 SDK: update DynamoDBService.csproj and Dockerfile with custom version in you local
 
 ## Setup
 
