@@ -1,0 +1,29 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DynamoDBService", "DynamoDBService", "{AEE839E6-75A4-5FCE-A649-9EC871398A3F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamoDBService", "DynamoDBService\DynamoDBService\DynamoDBService.csproj", "{CF358770-70BA-FDD4-F14C-37387431E9D0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CF358770-70BA-FDD4-F14C-37387431E9D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF358770-70BA-FDD4-F14C-37387431E9D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF358770-70BA-FDD4-F14C-37387431E9D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF358770-70BA-FDD4-F14C-37387431E9D0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CF358770-70BA-FDD4-F14C-37387431E9D0} = {AEE839E6-75A4-5FCE-A649-9EC871398A3F}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E75AC998-4EE4-44D5-9BE3-99152B655E86}
+	EndGlobalSection
+EndGlobal
