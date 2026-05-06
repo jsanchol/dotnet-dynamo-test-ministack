@@ -22,7 +22,7 @@ class Program
         // Create table
         await CreateGSIOnDemandTableAsync(client, tableName);
 
-        // GSI+Provisioned throughput with partition key only (no sort key) to test performance of queries on GSI without sort key
+        // GSI+On-demand throughput with partition key only (no sort key) to test performance of queries on GSI without sort key
         await RunTestGSIAsync(client, tableName);
 
         // Plan for more comprehensive testing
