@@ -17,6 +17,14 @@ class Program
         // GSI+Provisioned throughput with partition key only (no sort key) to test performance of queries on GSI without sort key
         await RunTestGSIProvisionedAsync(client, tableName);
 
+        tableName = "TestTableGSIOnDemand";
+
+        // Create table
+        await CreateGSIOnDemandTableAsync(client, tableName);
+
+        // GSI+Provisioned throughput with partition key only (no sort key) to test performance of queries on GSI without sort key
+        await RunTestGSIProvisionedAsync(client, tableName);
+
         // Plan for more comprehensive testing
         Console.WriteLine("\nPerformance Testing Plan:");
         Console.WriteLine("1. Increase dataset size to 1,000-10,000+ items for more realistic testing.");
@@ -84,6 +92,50 @@ class Program
                     },
                     Projection = new Projection { ProjectionType = "ALL" },
                     ProvisionedThroughput = new ProvisionedThroughput { ReadCapacityUnits = 5, WriteCapacityUnits = 5 }
+                }
+            },
+            ProvisionedThroughput = new ProvisionedThroughput { ReadCapacityUnits = 5, WriteCapacityUnits = 5 }
+        };
+
+        try
+        {
+            await client.CreateTableAsync(request);
+            Console.WriteLine("Table created successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Table creation failed: {ex.Message}");
+        }
+    }
+
+    static async Task CreateGSIOnDemandTableAsync(AmazonDynamoDBClient client, string tableName)
+    {
+        var request = new CreateTableRequest
+        {
+            TableName = tableName,
+            BillingMode = BillingMode.PAY_PER_REQUEST,
+            KeySchema = new List<KeySchemaElement>
+            {
+                new KeySchemaElement { AttributeName = "PK", KeyType = "HASH" },
+                new KeySchemaElement { AttributeName = "SK", KeyType = "RANGE" }
+            },
+            AttributeDefinitions = new List<AttributeDefinition>
+            {
+                new AttributeDefinition { AttributeName = "PK", AttributeType = "S" },
+                new AttributeDefinition { AttributeName = "SK", AttributeType = "S" },
+                new AttributeDefinition { AttributeName = "GSI_PK", AttributeType = "S" }
+            },
+            GlobalSecondaryIndexes = new List<GlobalSecondaryIndex>
+            {
+                new GlobalSecondaryIndex
+                {
+                    IndexName = "GSI1",
+                    KeySchema = new List<KeySchemaElement>
+                    {
+                        new KeySchemaElement { AttributeName = "GSI_PK", KeyType = "HASH" }
+                    },
+                    Projection = new Projection { ProjectionType = "ALL" }
+                    // No ProvisionedThroughput needed for PAY_PER_REQUEST
                 }
             },
             ProvisionedThroughput = new ProvisionedThroughput { ReadCapacityUnits = 5, WriteCapacityUnits = 5 }
