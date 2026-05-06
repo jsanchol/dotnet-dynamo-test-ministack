@@ -185,6 +185,7 @@ class Program
 
     static async Task PutTestDataAsync(AmazonDynamoDBClient client, string tableName, int sampleNumber)
     {
+        var stopwatch = Stopwatch.StartNew();
         for (int i = 0; i < sampleNumber; i++)
         {
             var item = new Dictionary<string, AttributeValue>
@@ -196,9 +197,9 @@ class Program
             };
 
             await client.PutItemAsync(tableName, item);
-            //Console.WriteLine("TODO: Implement metrics on client.");
         }
-        Console.WriteLine("Test data inserted.");
+        stopwatch.Stop();
+        Console.WriteLine($"Test data inserted: {sampleNumber} items in {stopwatch.ElapsedMilliseconds} ms.");
     }
 
     static async Task RunPerformanceTestsAsync(AmazonDynamoDBClient client, string tableName)
