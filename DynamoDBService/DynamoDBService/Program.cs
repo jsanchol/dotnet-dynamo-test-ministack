@@ -15,7 +15,7 @@ class Program
         await CreateGSIProvisionedTableAsync(client, tableName);
 
         // GSI+Provisioned throughput with partition key only (no sort key) to test performance of queries on GSI without sort key
-        await RunTestGSIProvisionedAsync(client, tableName);
+        await RunTestGSIAsync(client, tableName);
 
         tableName = "TestTableGSIOnDemand";
 
@@ -23,7 +23,7 @@ class Program
         await CreateGSIOnDemandTableAsync(client, tableName);
 
         // GSI+Provisioned throughput with partition key only (no sort key) to test performance of queries on GSI without sort key
-        await RunTestGSIProvisionedAsync(client, tableName);
+        await RunTestGSIAsync(client, tableName);
 
         // Plan for more comprehensive testing
         Console.WriteLine("\nPerformance Testing Plan:");
@@ -52,7 +52,7 @@ class Program
         return new AmazonDynamoDBClient(basicCredentials, dynamoDb);
     }
 
-    private static async Task RunTestGSIProvisionedAsync(AmazonDynamoDBClient client, string tableName)
+    private static async Task RunTestGSIAsync(AmazonDynamoDBClient client, string tableName)
     {
         // Put sample items small test data
         Console.WriteLine($"Inserting small test data for table {tableName}.");
@@ -124,6 +124,9 @@ class Program
         {
             Console.WriteLine($"Table creation failed: {ex.Message}");
         }
+
+        // Wait for table to be active
+        await WaitForTableActiveAsync(client, tableName);
     }
 
     static async Task CreateGSIOnDemandTableAsync(AmazonDynamoDBClient client, string tableName)
