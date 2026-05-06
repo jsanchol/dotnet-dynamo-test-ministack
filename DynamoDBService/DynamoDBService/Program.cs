@@ -54,12 +54,30 @@ class Program
 
     private static async Task RunTestGSIProvisionedAsync(AmazonDynamoDBClient client, string tableName)
     {
-        // Wait for table to be active
-        await WaitForTableActiveAsync(client, tableName);
+        // Put sample items small test data
+        Console.WriteLine($"Inserting small test data for table {tableName}.");
+        
+        //sampleFactor is used to increase the number of items inserted for testing performance with larger datasets. Adjust as needed.
+        int sampleFactor = 1000; // Start with 1000 items, increase to 10,000 or more for more comprehensive testing
+        await PutTestDataAsync(client, tableName, sampleFactor);
 
-        // Put sample of 100 items small test data
-        Console.WriteLine("Inserting small test data.");
-        await PutTestDataAsync(client, tableName, 100);
+        // Performance tests
+        await RunPerformanceTestsAsync(client, tableName);
+
+        // Then 10k items or more for more comprehensive testing
+        await PutTestDataAsync(client, tableName, sampleFactor * 10);
+
+        // Performance tests
+        await RunPerformanceTestsAsync(client, tableName);
+
+        //Then with 100k items or more for more comprehensive testing
+        await PutTestDataAsync(client, tableName, sampleFactor * 100);
+
+        // Performance tests
+        await RunPerformanceTestsAsync(client, tableName);
+
+        //Then with 1M items or more for more comprehensive testing
+        await PutTestDataAsync(client, tableName, sampleFactor * 1000);
 
         // Performance tests
         await RunPerformanceTestsAsync(client, tableName);
