@@ -17,59 +17,78 @@ internal class TestDynamoDBService : TestingDynamoDBClient
         // Create table
         await CreateGSIProvisionedTableAsync(tableName);
 
-        await MonitorTableAsync(tableName);
+        CancellationTokenSource cancellationTokenSource = new();
+        CancellationToken cancellationToken = cancellationTokenSource.Token;
 
-        // GSI+Provisioned throughput with partition key only (no sort key) to test performance of queries on GSI without sort key
-        await RunTestGSIAsync(tableName);
+        var tasks = new List<Task>
+        {
+            // Monitor RCUs and WCUs in the background while running tests
+            MonitorTableAsync(tableName, cancellationToken),
+            // GSI+Provisioned throughput with partition key only (no sort key) to test performance of queries on GSI without sort key
+            RunIncrementalTestGSIAsync(tableName, cancellationTokenSource)
+        };
+
+        await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
-    internal async Task MonitorTableAsync(string tableName)
+    //Then Runnning tests against On-Demand the DynamoDB service table
+    internal async Task RunTestsTableGSIOnDemand(string tableName = NameTestTableGSIOnDemand)
+    {
+        CancellationTokenSource cancellationTokenSource = new();
+        CancellationToken cancellationToken = cancellationTokenSource.Token;
+        
+        // Create table
+        await CreateGSIOnDemandTableAsync(tableName);
+
+        var tasks = new List<Task>
+        {
+            // Monitor RCUs and WCUs in the background while running tests
+            MonitorTableAsync(tableName, cancellationToken),
+            // GSI+On-Demand throughput with partition key only (no sort key) to test performance of queries on GSI without sort key
+            RunIncrementalTestGSIAsync(tableName, cancellationTokenSource)
+        };
+        await Task.WhenAll(tasks);
+    }
+
+    internal async Task MonitorTableAsync(string tableName, CancellationToken cancellationToken)
     {
         Console.WriteLine($"Monitoring table {tableName} for RCUs and WCUs...");
 
         // This is a placeholder for monitoring logic. In a real implementation, you would use CloudWatch metrics or DynamoDB's DescribeTable API to monitor RCUs and WCUs.
         // For example, you could periodically call DescribeTable and log the ProvisionedThroughput and ConsumedCapacity.
 
-        // Example of using DescribeTable to get current provisioned throughput
-        var describeResponse = await client.DescribeTableAsync(new DescribeTableRequest
+        while (!cancellationToken.IsCancellationRequested)
         {
-            TableName = tableName
-        });
+            // Example of using DescribeTable to get current provisioned throughput
+            var describeResponse = await client.DescribeTableAsync(new DescribeTableRequest
+            {
+                TableName = tableName
+            });
 
-        Console.WriteLine($"Initial provisioned RCUs: {describeResponse.Table.ProvisionedThroughput.ReadCapacityUnits}");
-        Console.WriteLine($"Initial provisioned WCUs: {describeResponse.Table.ProvisionedThroughput.WriteCapacityUnits}");
+            Console.WriteLine($"Initial provisioned RCUs: {describeResponse.Table.ProvisionedThroughput.ReadCapacityUnits}");
+            Console.WriteLine($"Initial provisioned WCUs: {describeResponse.Table.ProvisionedThroughput.WriteCapacityUnits}");
+            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ContinueWith(_ => { }); // Adjust monitoring frequency as needed
+        }
     }
 
-    //Then Runnning tests against On-Demand the DynamoDB service table
-    internal async Task RunTestsTableGSIOnDemand(string tableName = NameTestTableGSIOnDemand)
+    internal async Task RunIncrementalTestGSIAsync(string tableName, CancellationTokenSource cancellationTokenSource)
     {
-        // Create table
-        await CreateGSIOnDemandTableAsync(tableName);
+        for (int i = 3; i <= 5; i++)
+        // Insert i=3=1k, i=4=10k, i=5=100k, i=6=1M items
+        {
+            int sampleNumber = (int)Math.Pow(10, i);
+            // Put sample items small test data
+            Console.WriteLine($"Inserting small item test data for table {tableName} sample number: {sampleNumber}.");
+            
+            await PutSmallItemTestDataAsync(tableName, sampleNumber);
 
-        // GSI+Provisioned throughput with partition key only (no sort key) to test performance of queries on GSI without sort key
-        await RunTestGSIAsync(tableName);
-    }
-
-    internal async Task RunTestGSIAsync(string tableName)
-    {
-        // Put sample items small test data
-        Console.WriteLine($"Inserting small test data for table {tableName}.");
-
-        //sampleFactor is used to increase the number of items inserted for testing performance with larger datasets. Adjust as needed.
-        int sampleFactor = 1000; // Start with 1000 items, increase to 10,000 or more for more comprehensive testing
-        await PutSmallItemTestDataAsync(tableName, sampleFactor);
-
-        // Performance tests
-        await RunQueryTestsAsync(tableName);
-        await RunPaginationQueryTestsAsync(tableName);
-        await RunScanTestsAsync(tableName);
-
-        // // Then 10k items or more for more comprehensive testing
-        // await PutSmallItemTestDataAsync(tableName, sampleFactor * 10);
-        // //Then with 100k items or more for more comprehensive testing
-        // await PutSmallItemTestDataAsync(tableName, sampleFactor * 100);
-        // //Then with 1M items or more for more comprehensive testing
-        // await PutSmallItemTestDataAsync(tableName, sampleFactor * 1000);
+            // Performance tests
+            await RunQueryTestsAsync(tableName);
+            await RunPaginationQueryTestsAsync(tableName);
+            await RunScanTestsAsync(tableName);
+        }
+        
+        cancellationTokenSource.Cancel(); // Stop monitoring after tests are done
     }
 
     internal async Task RunQueryTestsAsync(string tableName)
@@ -157,7 +176,7 @@ internal class TestDynamoDBService : TestingDynamoDBClient
 
             var queryResponse = await client.QueryAsync(queryRequest);
             totalItems += queryResponse.Items.Count;
-            lastEvaluatedKey = queryResponse.LastEvaluatedKey.ContainsKey("SK") ? queryResponse.LastEvaluatedKey["SK"].S : null;
+            lastEvaluatedKey = queryResponse.LastEvaluatedKey != null && queryResponse.LastEvaluatedKey.ContainsKey("SK") ? queryResponse.LastEvaluatedKey["SK"].S : null;
         } while (lastEvaluatedKey != null);
 
         stopwatch.Stop();
