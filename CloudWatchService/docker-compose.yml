@@ -1,0 +1,22 @@
+services:
+  ministack:
+    image: ministackorg/ministack:latest
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: dynamodb, cloudwatch
+    volumes:
+      - ministack-data:/tmp/ministack-data
+
+  testing-cloudwatch-service:
+    build: ./CloudWatchService
+    depends_on:
+      - ministack
+    environment:
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      CLOUDWATCH_ENDPOINT: http://ministack:4566
+
+volumes:
+  ministack-data:
