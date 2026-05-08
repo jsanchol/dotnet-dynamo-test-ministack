@@ -93,7 +93,7 @@ internal class TestDynamoDBService : TestingDynamoDBClient
 
     internal async Task RunQueryTestsAsync(string tableName)
     {
-        Console.WriteLine("Running performance tests...");
+        Console.WriteLine("Running Query performance tests...");
 
         // Query on partition key
         var queryRequest = new QueryRequest
@@ -109,7 +109,7 @@ internal class TestDynamoDBService : TestingDynamoDBClient
         var stopwatch = Stopwatch.StartNew();
         var queryResponse = await client.QueryAsync(queryRequest);
         stopwatch.Stop();
-        Console.WriteLine($"PK Query time: {stopwatch.ElapsedMilliseconds} ms, Items: {queryResponse.Items.Count}");
+        Console.WriteLine($"PK Query 10% of items, time: {stopwatch.ElapsedMilliseconds} ms, Items: {queryResponse.Items.Count}");
 
         // Query on GSI
         var gsiQueryRequest = new QueryRequest
@@ -126,11 +126,12 @@ internal class TestDynamoDBService : TestingDynamoDBClient
         stopwatch.Restart();
         var gsiQueryResponse = await client.QueryAsync(gsiQueryRequest);
         stopwatch.Stop();
-        Console.WriteLine($"GSI Query time: {stopwatch.ElapsedMilliseconds} ms, Items: {gsiQueryResponse.Items.Count}");
+        Console.WriteLine($"Finished GSI Query 20% of items, time: {stopwatch.ElapsedMilliseconds} ms, Items: {gsiQueryResponse.Items.Count}");
     }
 
     internal async Task RunScanTestsAsync(string tableName)
     {
+        Console.WriteLine("Running Scan performance tests...");
         Stopwatch stopwatch = Stopwatch.StartNew();
         // Scan
         var scanRequest = new ScanRequest
@@ -141,7 +142,7 @@ internal class TestDynamoDBService : TestingDynamoDBClient
         stopwatch.Restart();
         var scanResponse = await client.ScanAsync(scanRequest);
         stopwatch.Stop();
-        Console.WriteLine($"Scan time: {stopwatch.ElapsedMilliseconds} ms, Items: {scanResponse.Items.Count}");
+        Console.WriteLine($"Finished Scan 100% items, time: {stopwatch.ElapsedMilliseconds} ms, Items: {scanResponse.Items.Count}");
     }
 
     internal async Task RunPaginationQueryTestsAsync(string tableName)
@@ -180,6 +181,6 @@ internal class TestDynamoDBService : TestingDynamoDBClient
         } while (lastEvaluatedKey != null);
 
         stopwatch.Stop();
-        Console.WriteLine($"Total items retrieved: {totalItems}, Total time: {stopwatch.ElapsedMilliseconds} ms");
+        Console.WriteLine($"Finished pagination query 10% of items, time: {stopwatch.ElapsedMilliseconds} ms, Total items retrieved: {totalItems}");
     }
 }
