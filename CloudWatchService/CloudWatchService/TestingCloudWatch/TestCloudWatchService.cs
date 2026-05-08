@@ -53,7 +53,8 @@ internal class TestCloudWatchService : TestingCloudWatchClient
                 StartTime = startTime,
                 EndTime = endTime,
                 Period = 300, // 5-minute intervals
-                Statistics = new List<string> { "Sum", "Average", "Maximum" }
+                Statistics = ["Sum", "Average", "Maximum"],
+                ExtendedStatistics = ["p55", "p90", "p95"]
             };
 
             var response = await client.GetMetricStatisticsAsync(request);
@@ -70,6 +71,12 @@ internal class TestCloudWatchService : TestingCloudWatchClient
                         Console.WriteLine($"    Average: {datapoint.Average:N2}");
                     if (datapoint.Maximum.HasValue)
                         Console.WriteLine($"    Maximum: {datapoint.Maximum:N2}");
+                    if (datapoint.ExtendedStatistics.ContainsKey("p55"))
+                        Console.WriteLine($"    p55: {datapoint.ExtendedStatistics["p55"]:N2}");
+                    if (datapoint.ExtendedStatistics.ContainsKey("p90"))
+                        Console.WriteLine($"    p90: {datapoint.ExtendedStatistics["p90"]:N2}");
+                    if (datapoint.ExtendedStatistics.ContainsKey("p95"))
+                        Console.WriteLine($"    p95: {datapoint.ExtendedStatistics["p95"]:N2}");
                 }
             }
             else
