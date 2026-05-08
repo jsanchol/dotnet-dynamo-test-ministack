@@ -6,9 +6,16 @@ using Amazon.Runtime;
 internal class TestingDynamoDBClient // TODO: Implementing a base class for AmazonClient <T>
 {
     internal AmazonDynamoDBClient client;
+    internal string endpoint;
+    private string AccessKey;
+    private string SecretKey;
 
     internal TestingDynamoDBClient()
     {
+        //TODO: move this to a config file and use dependency injection for better flexibility and testability, especially when we expand to other AWS services like Lambda and RDS.
+        endpoint = Environment.GetEnvironmentVariable("DYNAMODB_ENDPOINT") ?? "http://localhost:4566";
+        AccessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID") ?? "test";
+        SecretKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY") ?? "test";
         client = SetUpClient();
     }
 
@@ -16,14 +23,13 @@ internal class TestingDynamoDBClient // TODO: Implementing a base class for Amaz
     internal AmazonDynamoDBClient SetUpClient()
     {
         // Configure DynamoDB client for Ministack
-        string endpoint = Environment.GetEnvironmentVariable("DYNAMODB_ENDPOINT") ?? "http://localhost:4566";
+        
         AmazonDynamoDBConfig dynamoDb = new()
         {
             ServiceURL = endpoint,
             AuthenticationRegion = "us-east-1"
         };
-        string AccessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID") ?? "test";
-        string SecretKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY") ?? "test";
+        
         AWSCredentials basicCredentials = new BasicAWSCredentials(AccessKey, SecretKey);
         return new AmazonDynamoDBClient(basicCredentials, dynamoDb);;
     }
@@ -120,6 +126,8 @@ internal class TestingDynamoDBClient // TODO: Implementing a base class for Amaz
                 ["Data"] = new AttributeValue { S = $"Data for item {i}" },
                 ["LargeData"] = new AttributeValue { S = $"Large data for item {i} NsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 " }
             };
+            //LargeData is more than 4KB
+            //TODO: create function to generate large data string based on specified size in KB for more comprehensive testing instead of hardcoding it.
 
             await client.PutItemAsync(tableName, item);
         }

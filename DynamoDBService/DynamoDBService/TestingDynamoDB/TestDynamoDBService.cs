@@ -183,4 +183,20 @@ internal class TestDynamoDBService : TestingDynamoDBClient
         stopwatch.Stop();
         Console.WriteLine($"Finished pagination query 10% of items, time: {stopwatch.ElapsedMilliseconds} ms, Total items retrieved: {totalItems}");
     }
+
+    internal async Task ResetMinistackAsync()
+    {
+        using HttpClient httpClient= new();
+        try
+        {
+            string url = $"{endpoint}/_ministack/reset";
+            Console.WriteLine($"Sending request to reset Ministack: {url}");
+            var response = await httpClient.PostAsync(url, null);
+            Console.WriteLine($"Ministack reset response: {response.Content.ReadAsStringAsync().Result}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error resetting Ministack: {ex.Message}");
+        }
+    }
 }

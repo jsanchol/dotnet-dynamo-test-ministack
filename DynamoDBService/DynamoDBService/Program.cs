@@ -2,7 +2,16 @@
 {
     static async Task Main(string[] args)
     {
+        bool resetMinistack = Environment.GetEnvironmentVariable("DYNAMODB_RESET") == "true";
+
         TestDynamoDBService testService = new();
+
+        if(resetMinistack)
+        {
+            Console.WriteLine("Resetting Ministack...");
+            await testService.ResetMinistackAsync();
+        }
+
         
         await testService.RunTestsTableGSIProvisioned();
 

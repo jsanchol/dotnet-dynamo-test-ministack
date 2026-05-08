@@ -17,6 +17,7 @@ services:
       AWS_SECRET_ACCESS_KEY: test
       AWS_DEFAULT_REGION: us-east-1
       DYNAMODB_ENDPOINT: http://ministack:4566
+      DYNAMODB_RESET: true
 
 volumes:
   ministack-data:
