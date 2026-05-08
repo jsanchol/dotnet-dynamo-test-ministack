@@ -9,7 +9,7 @@ services:
       - ministack-data:/tmp/ministack-data
 
   testing-dynamodb-service:
-    build: ./DynamoDBService
+    build: ./DynamoDBService/DynamoDBService
     depends_on:
       - ministack
     environment:
@@ -18,8 +18,9 @@ services:
       AWS_DEFAULT_REGION: us-east-1
       DYNAMODB_ENDPOINT: http://ministack:4566
       DYNAMODB_RESET: true
+
   testing-dynamodb-service-no-reset:
-    build: ./DynamoDBService
+    build: ./DynamoDBService/DynamoDBService
     depends_on:
       - ministack
     environment:
@@ -28,6 +29,16 @@ services:
       AWS_DEFAULT_REGION: us-east-1
       DYNAMODB_ENDPOINT: http://ministack:4566
       DYNAMODB_RESET: false
+
+  testing-cloudwatch-service:
+    build: ./CloudWatchService/CloudWatchService
+    depends_on:
+      - ministack
+    environment:
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      CLOUDWATCH_ENDPOINT: http://ministack:4566
 
 volumes:
   ministack-data:
