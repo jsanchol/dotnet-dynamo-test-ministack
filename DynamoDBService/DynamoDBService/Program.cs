@@ -16,12 +16,20 @@
             await testService.ResetMinistackAsync();
         }
 
-        
-        await testService.RunTestsTableGSIProvisioned();
+        int iteration = Environment.GetEnvironmentVariable("TEST_ITERATIONS") != null ? int.Parse(Environment.GetEnvironmentVariable("TEST_ITERATIONS")!) : 1;
 
-        await testService.RunTestsTableGSIOnDemand();
+        List<Task> setupTasks = [];
 
+        while (iteration-- > 0)
+        {
+            setupTasks.AddRange(
+            [
+                testService.RunTestsTableGSIProvisioned(),
+                testService.RunTestsTableGSIOnDemand()
+            ]);
+        }
 
+        await Task.WhenAll(setupTasks);
 
         // Plan for more comprehensive testing
         Console.WriteLine("\nPerformance Testing Plan:");
