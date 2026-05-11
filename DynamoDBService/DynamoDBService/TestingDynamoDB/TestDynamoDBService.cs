@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.Model;
 
 internal class TestDynamoDBService : TestingDynamoDBClient
@@ -87,9 +88,46 @@ internal class TestDynamoDBService : TestingDynamoDBClient
             await RunPaginationQueryTestsAsync(tableName);
             await RunScanTestsAsync(tableName);
             await RunSKQueryTestsAsync(tableName, sampleNumber);
+
+            await RunContextTestsAsync(tableName, sampleNumber);
         }
         
         cancellationTokenSource.Cancel(); // Stop monitoring after tests are done
+    }
+
+    private async Task RunContextTestsAsync(string tableName, int sampleNumber)
+    {
+        DynamoDBContext context = GetDynamoDBContext();
+
+        Console.WriteLine("Running DynamoDBContext performance tests...");
+        var stopwatch = Stopwatch.StartNew();
+        for (int i = 0; i < sampleNumber; i++)
+        {
+            var item = new TestItem(
+                $"User{i % 10}",
+                $"Item{i}",
+                $"Category{i % 5}",
+                GenerateLargeDataString(1)
+            );
+            stopwatch.Restart();
+            await context.SaveAsync(item);
+            stopwatch.Stop();
+            if (i == sampleNumber - 1)
+            {
+                Console.WriteLine($"DynamoDBContext SaveAsync for {sampleNumber} items, time: {stopwatch.ElapsedMilliseconds} ms.");
+            }
+        }
+
+        for (int i = 0; i < sampleNumber; i++)
+        {
+            stopwatch.Restart();
+            var item = await context.LoadAsync<TestItem>($"User{i % 10}", $"Item{i}");
+            stopwatch.Stop();
+            if (i == sampleNumber - 1)
+            {
+                Console.WriteLine($"DynamoDBContext LoadAsync for SK={item.SK} & PK={item.PK} item, time: {stopwatch.ElapsedMilliseconds} ms.");
+            }
+        }
     }
 
     private async Task RunSKQueryTestsAsync(string tableName, int sampleNumber)

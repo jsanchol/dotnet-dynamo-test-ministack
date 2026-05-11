@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
 
@@ -204,5 +205,17 @@ internal class TestingDynamoDBClient
         {
             Console.WriteLine($"Table creation failed: {ex.Message}");
         }
+    }
+
+    internal DynamoDBContext GetDynamoDBContext()
+    {
+        DynamoDBContext context = new DynamoDBContextBuilder()
+                    .ConfigureContext(x =>
+                    {
+                        x.DisableFetchingTableMetadata = false; // add this line to avoid issues with non-existent table metadata when using DynamoDB Local
+                    })
+                    .WithDynamoDBClient(() => client)
+                    .Build();
+        return context;
     }
 }
