@@ -3,7 +3,7 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
 
-internal class TestingDynamoDBClient // TODO: Implementing a base class for AmazonClient <T>
+internal class TestingDynamoDBClient
 {
     internal AmazonDynamoDBClient client;
     internal string endpoint;
@@ -116,23 +116,50 @@ internal class TestingDynamoDBClient // TODO: Implementing a base class for Amaz
     internal async Task PutLargeItemTestDataAsync(string tableName, int sampleNumber)
     {
         var stopwatch = Stopwatch.StartNew();
+        var random = new Random();
+        
         for (int i = 0; i < sampleNumber; i++)
         {
+            int randomSize = random.Next(1, 11);//dynamodb item up to 400KB
+            string largeData = GenerateLargeDataString(randomSize);
+            
             var item = new Dictionary<string, AttributeValue>
             {
                 ["PK"] = new AttributeValue { S = $"User{i % 10}" },
                 ["SK"] = new AttributeValue { S = $"Item{i}" },
                 ["GSI_PK"] = new AttributeValue { S = $"Category{i % 5}" },
                 ["Data"] = new AttributeValue { S = $"Data for item {i}" },
-                ["LargeData"] = new AttributeValue { S = $"Large data for item {i} NsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4N b VGc0HB5HMNXdyEoWroU464ChM5R Lqdsm3iPo1mz0cPKqobhjDYkvRs5LZO8n92GxEKGeCtt oX53Qu6T7O2E9nJLKoUeJI6Ul7keLsNGI2BC55qs7fhqW8eFDsGsLPaImF7kFJizNsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4 " }
+                ["LargeData"] = new AttributeValue { S = $"Large data for item {i}: {largeData}" }
             };
-            //LargeData is more than 4KB
-            //TODO: create function to generate large data string based on specified size in KB for more comprehensive testing instead of hardcoding it.
 
             await client.PutItemAsync(tableName, item);
         }
         stopwatch.Stop();
-        Console.WriteLine($"Test data inserted: {sampleNumber} items in {stopwatch.ElapsedMilliseconds} ms.");
+        Console.WriteLine($"Test data inserted: {sampleNumber} items in {stopwatch.ElapsedMilliseconds} ms (with random 1-10KB large data per item).");
+    }
+
+    internal string GenerateLargeDataString(int sizeInKB)
+    {
+        // Generate a string of approximately the specified size in KB
+        const string baseString = "NsQlhbisDW5JVlLSaZVtCLSUUrkBijbkc5f9gFFscDkoGnN0J6GgIFqdCLyhbdWLHxRVY8IwDCrWF555JeY0yD0GtgH21NotZAEeiWJR1A4bxqq9VKKAzMJ0tW7TCOqNtMzVtPB6NrtCIg8NSmhrO7QjNcOzi4Nb";
+        int baseSizeInBytes = baseString.Length;
+        int targetSizeInBytes = sizeInKB * 1024;
+        
+        // Calculate how many times we need to repeat the base string
+        int repetitions = (targetSizeInBytes / baseSizeInBytes) + 1;
+        
+        var result = new System.Text.StringBuilder(targetSizeInBytes);
+        for (int i = 0; i < repetitions; i++)
+        {
+            result.Append(baseString);
+            if (result.Length >= targetSizeInBytes)
+            {
+                break;
+            }
+        }
+        
+        // Trim to exact size
+        return result.ToString(0, Math.Min(result.Length, targetSizeInBytes));
     }
 
     internal async Task CreateGSIOnDemandTableAsync(string tableName)
