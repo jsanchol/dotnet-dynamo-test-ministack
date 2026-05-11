@@ -50,7 +50,7 @@ internal class TestDynamoDBService : TestingDynamoDBClient
         await Task.WhenAll(tasks);
     }
 
-    internal async Task MonitorTableAsync(string tableName, CancellationToken cancellationToken)
+    private async Task MonitorTableAsync(string tableName, CancellationToken cancellationToken)
     {
         Console.WriteLine($"Monitoring table {tableName} for RCUs and WCUs...");
 
@@ -71,7 +71,7 @@ internal class TestDynamoDBService : TestingDynamoDBClient
         }
     }
 
-    internal async Task RunIncrementalTestGSIAsync(string tableName, CancellationTokenSource cancellationTokenSource)
+    private async Task RunIncrementalTestGSIAsync(string tableName, CancellationTokenSource cancellationTokenSource)
     {
         for (int i = 3; i <= 5; i++)
         // Insert i=3=1k, i=4=10k, i=5=100k, i=6=1M items
@@ -83,15 +83,40 @@ internal class TestDynamoDBService : TestingDynamoDBClient
             await PutSmallItemTestDataAsync(tableName, sampleNumber);
 
             // Performance tests
-            await RunQueryTestsAsync(tableName);
+            await RunPKGSIQueryTestsAsync(tableName);
             await RunPaginationQueryTestsAsync(tableName);
             await RunScanTestsAsync(tableName);
+            await RunSKQueryTestsAsync(tableName, sampleNumber);
         }
         
         cancellationTokenSource.Cancel(); // Stop monitoring after tests are done
     }
 
-    internal async Task RunQueryTestsAsync(string tableName)
+    private async Task RunSKQueryTestsAsync(string tableName, int sampleNumber)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        for (int i = 0; i < sampleNumber; i++)
+        {
+            Console.WriteLine("Running Query performance tests...");
+
+            // Query on sort key
+            var queryRequest = new QueryRequest
+            {
+                TableName = tableName,
+                KeyConditionExpression = "SK = :sk",
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                {
+                    [":sk"] = new AttributeValue { S = $"Item{i}" }
+                }
+            };
+            stopwatch.Restart();
+            var queryResponse = await client.QueryAsync(queryRequest);
+            stopwatch.Stop();
+            Console.WriteLine($"SK Query each item, time: {stopwatch.ElapsedMilliseconds} ms, Items: {queryResponse.Items.Count}");
+        }
+    }
+
+    private async Task RunPKGSIQueryTestsAsync(string tableName)
     {
         Console.WriteLine("Running Query performance tests...");
 
@@ -129,7 +154,7 @@ internal class TestDynamoDBService : TestingDynamoDBClient
         Console.WriteLine($"Finished GSI Query 20% of items, time: {stopwatch.ElapsedMilliseconds} ms, Items: {gsiQueryResponse.Items.Count}");
     }
 
-    internal async Task RunScanTestsAsync(string tableName)
+    private async Task RunScanTestsAsync(string tableName)
     {
         Console.WriteLine("Running Scan performance tests...");
         Stopwatch stopwatch = Stopwatch.StartNew();
@@ -145,7 +170,7 @@ internal class TestDynamoDBService : TestingDynamoDBClient
         Console.WriteLine($"Finished Scan 100% items, time: {stopwatch.ElapsedMilliseconds} ms, Items: {scanResponse.Items.Count}");
     }
 
-    internal async Task RunPaginationQueryTestsAsync(string tableName)
+    private async Task RunPaginationQueryTestsAsync(string tableName)
     {
         Console.WriteLine("Running pagination query tests...");
 
@@ -181,7 +206,7 @@ internal class TestDynamoDBService : TestingDynamoDBClient
         } while (lastEvaluatedKey != null);
 
         stopwatch.Stop();
-        Console.WriteLine($"Finished pagination query 10% of items, time: {stopwatch.ElapsedMilliseconds} ms, Total items retrieved: {totalItems}");
+        Console.WriteLine($"Finished pagination query 10% of items by 100 Limit, time: {stopwatch.ElapsedMilliseconds} ms, Total items retrieved: {totalItems}");
     }
 
     internal async Task ResetMinistackAsync()
