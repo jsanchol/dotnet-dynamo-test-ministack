@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using Amazon.CloudWatch.Model;
-
 internal class TestCloudWatchService : TestingCloudWatchClient
 {
     public TestCloudWatchService()
@@ -16,77 +13,32 @@ internal class TestCloudWatchService : TestingCloudWatchClient
         DateTime endTime = DateTime.UtcNow;
         DateTime startTime = endTime.AddHours(-1);
 
-        // Read Capacity Units (RCU)
-        await GetMetricAsync(tableName, "ConsumedReadCapacityUnits", "AWS/DynamoDB", startTime, endTime);
-
-        // Write Capacity Units (WCU)
-        await GetMetricAsync(tableName, "ConsumedWriteCapacityUnits", "AWS/DynamoDB", startTime, endTime);
-
-        // User Errors
-        await GetMetricAsync(tableName, "UserErrors", "AWS/DynamoDB", startTime, endTime);
-
-        // System Errors
-        await GetMetricAsync(tableName, "SystemErrors", "AWS/DynamoDB", startTime, endTime);
-
-        // Latency metrics
-        await GetMetricAsync(tableName, "SuccessfulRequestLatency", "AWS/DynamoDB", startTime, endTime);
-
-        // Query count
-        await GetMetricAsync(tableName, "Query", "AWS/DynamoDB", startTime, endTime);
-
-        // Scan count
-        await GetMetricAsync(tableName, "Scan", "AWS/DynamoDB", startTime, endTime);
-    }
-
-    private async Task GetMetricAsync(string tableName, string metricName, string namespaceName, DateTime startTime, DateTime endTime)
-    {
-        try
+        var availableMetrics = await cloudWatchClient.ListMetricsAsync();
+        foreach (var metric in availableMetrics.Metrics)
         {
-            var request = new GetMetricStatisticsRequest
-            {
-                Namespace = namespaceName,
-                MetricName = metricName,
-                Dimensions = new List<Dimension>
-                {
-                    new Dimension { Name = "TableName", Value = tableName }
-                },
-                StartTime = startTime,
-                EndTime = endTime,
-                Period = 300, // 5-minute intervals
-                Statistics = ["Sum", "Average", "Maximum"],
-                ExtendedStatistics = ["p55", "p90", "p95"]
-            };
-
-            var response = await client.GetMetricStatisticsAsync(request);
-
-            if (response.Datapoints.Count > 0)
-            {
-                Console.WriteLine($"\n{metricName}:");
-                foreach (var datapoint in response.Datapoints.OrderBy(d => d.Timestamp))
-                {
-                    Console.WriteLine($"  Timestamp: {datapoint.Timestamp:yyyy-MM-dd HH:mm:ss}");
-                    if (datapoint.Sum.HasValue)
-                        Console.WriteLine($"    Sum: {datapoint.Sum:N2}");
-                    if (datapoint.Average.HasValue)
-                        Console.WriteLine($"    Average: {datapoint.Average:N2}");
-                    if (datapoint.Maximum.HasValue)
-                        Console.WriteLine($"    Maximum: {datapoint.Maximum:N2}");
-                    if (datapoint.ExtendedStatistics.ContainsKey("p55"))
-                        Console.WriteLine($"    p55: {datapoint.ExtendedStatistics["p55"]:N2}");
-                    if (datapoint.ExtendedStatistics.ContainsKey("p90"))
-                        Console.WriteLine($"    p90: {datapoint.ExtendedStatistics["p90"]:N2}");
-                    if (datapoint.ExtendedStatistics.ContainsKey("p95"))
-                        Console.WriteLine($"    p95: {datapoint.ExtendedStatistics["p95"]:N2}");
-                }
-            }
-            else
-            {
-                Console.WriteLine($"\n{metricName}: No data available");
-            }
+            Console.WriteLine($"Available metric: {metric.MetricName} in namespace {metric.Namespace}");
+            await GetMetricAsync(tableName, metric.MetricName, startTime, endTime);
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"\n{metricName}: Error retrieving metrics - {ex.Message}");
-        }
+
+        // // Read Capacity Units (RCU)
+        // await GetMetricAsync(tableName, ConsumedRCUMetric, startTime, endTime);
+
+        // // Write Capacity Units (WCU)
+        // await GetMetricAsync(tableName, ConsumedWCUMetric, startTime, endTime);
+
+        // // User Errors
+        // await GetMetricAsync(tableName, UserErrorsMetric, startTime, endTime);
+
+        // // System Errors
+        // await GetMetricAsync(tableName, SystemErrorsMetric, startTime, endTime);
+
+        // // Latency metrics
+        // await GetMetricAsync(tableName, SuccessfulRequestLatencyMetric, startTime, endTime);
+
+        // // Query count
+        // await GetMetricAsync(tableName, QueryMetric, startTime, endTime);
+
+        // // Scan count
+        // await GetMetricAsync(tableName, ScanMetric, startTime, endTime);
     }
 }

@@ -9,6 +9,12 @@ class Program
         DateTime endTime = DateTime.UtcNow.AddHours(1);
         int cycle = 1;
 
+        var availableMetrics = await testService.cloudWatchClient.ListMetricsAsync();
+        foreach (var metric in availableMetrics.Metrics)
+        {
+            Console.WriteLine($"Available metric: {metric.MetricName} in namespace {metric.Namespace}");
+        }
+
         while (DateTime.UtcNow < endTime)
         {
             Console.WriteLine($"Starting cycle {cycle} at {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");

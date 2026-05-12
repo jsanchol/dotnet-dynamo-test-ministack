@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Amazon.CloudWatch;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.Model;
@@ -7,7 +8,9 @@ using Amazon.Runtime;
 internal class TestingDynamoDBClient
 {
     internal AmazonDynamoDBClient client;
+    internal TestingCloudWatchClient cloudWatchClient;
     internal string endpoint;
+    internal string cloudWatchEndpoint;
     private string AccessKey;
     private string SecretKey;
 
@@ -15,9 +18,11 @@ internal class TestingDynamoDBClient
     {
         //TODO: move this to a config file and use dependency injection for better flexibility and testability, especially when we expand to other AWS services like Lambda and RDS.
         endpoint = Environment.GetEnvironmentVariable("DYNAMODB_ENDPOINT") ?? "http://localhost:4566";
+        cloudWatchEndpoint = Environment.GetEnvironmentVariable("CLOUDWATCH_ENDPOINT") ?? endpoint;
         AccessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID") ?? "test";
         SecretKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY") ?? "test";
         client = SetUpClient();
+        cloudWatchClient = SetUpCloudWatchClient();
     }
 
     //SetUp dynamo test service
@@ -25,14 +30,19 @@ internal class TestingDynamoDBClient
     {
         // Configure DynamoDB client for Ministack
         
-        AmazonDynamoDBConfig dynamoDb = new()
+        AmazonDynamoDBConfig dynamoDbConfig = new()
         {
             ServiceURL = endpoint,
             AuthenticationRegion = "us-east-1"
         };
         
         AWSCredentials basicCredentials = new BasicAWSCredentials(AccessKey, SecretKey);
-        return new AmazonDynamoDBClient(basicCredentials, dynamoDb);;
+        return new AmazonDynamoDBClient(basicCredentials, dynamoDbConfig);;
+    }
+
+    internal TestingCloudWatchClient SetUpCloudWatchClient()
+    {
+        return new TestingCloudWatchClient();
     }
 
     internal async Task WaitForTableActiveAsync(string tableName)
@@ -80,13 +90,21 @@ internal class TestingDynamoDBClient
             ProvisionedThroughput = new ProvisionedThroughput { ReadCapacityUnits = 5, WriteCapacityUnits = 5 }
         };
 
+        var stopwatch = Stopwatch.StartNew();
         try
         {
+            stopwatch.Restart();
             await client.CreateTableAsync(request);
+            stopwatch.Stop();
             Console.WriteLine("Table created successfully.");
+            await cloudWatchClient.PublishCloudWatchMetricAsync(TestingCloudWatchClient.DynamoDBTableCreateSuccessMetric, 1, tableName, "GSIProvisioned", StandardUnit.Count);
+            await cloudWatchClient.PublishCloudWatchMetricAsync(TestingCloudWatchClient.DynamoDBTableCreateMetric, stopwatch.Elapsed.TotalMilliseconds, tableName, "GSIProvisioned");
         }
         catch (Exception ex)
         {
+            stopwatch.Stop();
+            await cloudWatchClient.PublishCloudWatchMetricAsync(TestingCloudWatchClient.DynamoDBTableCreateFailureMetric, 1, tableName, "GSIProvisioned", StandardUnit.Count);
+            await cloudWatchClient.PublishCloudWatchMetricAsync(TestingCloudWatchClient.DynamoDBTableCreateMetric, stopwatch.Elapsed.TotalMilliseconds, tableName, "GSIProvisioned");
             Console.WriteLine($"Table creation failed: {ex.Message}");
         }
 
@@ -111,6 +129,7 @@ internal class TestingDynamoDBClient
             await client.PutItemAsync(tableName, item);
         }
         stopwatch.Stop();
+        await cloudWatchClient.PublishCloudWatchMetricAsync(TestingCloudWatchClient.DynamoDBTestDataInsertDurationMsMetric, stopwatch.Elapsed.TotalMilliseconds, tableName, "PutSmallItemTestData");
         Console.WriteLine($"Test data inserted: {sampleNumber} items in {stopwatch.ElapsedMilliseconds} ms.");
     }
 
@@ -136,6 +155,7 @@ internal class TestingDynamoDBClient
             await client.PutItemAsync(tableName, item);
         }
         stopwatch.Stop();
+        await cloudWatchClient.PublishCloudWatchMetricAsync(TestingCloudWatchClient.DynamoDBTestDataInsertDurationMsMetric, stopwatch.Elapsed.TotalMilliseconds, tableName, "PutLargeItemTestData");
         Console.WriteLine($"Test data inserted: {sampleNumber} items in {stopwatch.ElapsedMilliseconds} ms (with random 1-10KB large data per item).");
     }
 
@@ -165,6 +185,7 @@ internal class TestingDynamoDBClient
 
     internal async Task CreateGSIOnDemandTableAsync(string tableName)
     {
+        var stopwatch = Stopwatch.StartNew();
         var request = new CreateTableRequest
         {
             TableName = tableName,
@@ -192,17 +213,23 @@ internal class TestingDynamoDBClient
                     Projection = new Projection { ProjectionType = "ALL" }
                     // No ProvisionedThroughput needed for PAY_PER_REQUEST
                 }
-            },
-            ProvisionedThroughput = new ProvisionedThroughput { ReadCapacityUnits = 5, WriteCapacityUnits = 5 }
+            }
         };
 
         try
         {
+            stopwatch.Restart();
             await client.CreateTableAsync(request);
+            stopwatch.Stop();
             Console.WriteLine("Table created successfully.");
+            await cloudWatchClient.PublishCloudWatchMetricAsync(TestingCloudWatchClient.DynamoDBTableCreateSuccessMetric, 1, tableName, "GSIOnDemand", StandardUnit.Count);
+            await cloudWatchClient.PublishCloudWatchMetricAsync(TestingCloudWatchClient.DynamoDBTableCreateMetric, stopwatch.Elapsed.TotalMilliseconds, tableName, "GSIOnDemand");
         }
         catch (Exception ex)
         {
+            stopwatch.Stop();
+            await cloudWatchClient.PublishCloudWatchMetricAsync(TestingCloudWatchClient.DynamoDBTableCreateFailureMetric, 1, tableName, "GSIOnDemand", StandardUnit.Count);
+            await cloudWatchClient.PublishCloudWatchMetricAsync(TestingCloudWatchClient.DynamoDBTableCreateMetric, stopwatch.Elapsed.TotalMilliseconds, tableName, "GSIOnDemand");
             Console.WriteLine($"Table creation failed: {ex.Message}");
         }
     }

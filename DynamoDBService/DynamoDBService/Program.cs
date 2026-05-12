@@ -34,10 +34,9 @@
         // Plan for more comprehensive testing
         Console.WriteLine("\nPerformance Testing Plan:");
         Console.WriteLine("1. Test with different RCUs (Read Capacity Units) to simulate throttling.");
-        Console.WriteLine("2. Monitor CPU, memory usage during tests.");
+        Console.WriteLine("2. Docker Monitor CPU, memory usage during tests.");
         Console.WriteLine("3. Compare Query vs Scan vs GSI Query in terms of latency and throughput.");
         // refactoring code to be more modular and reusable for different test cases like other AWS services.
-        // using IDynamoDBContext
         //NEXT: lambda and RDS
     }
 }
